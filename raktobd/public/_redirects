@@ -1,0 +1,8 @@
+# Proxy all API requests to the Render backend
+/api/*    https://blood-donation-gls8.onrender.com/api/:splat    200
+
+# Support Single Page App Routing for Admin portal
+/admin/*  /admin/index.html                                      200
+
+# Support Single Page App Routing for main frontend
+/*        /index.html                                            200
