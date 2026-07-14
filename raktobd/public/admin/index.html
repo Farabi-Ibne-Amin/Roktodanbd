@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoktoDanBD — Administration Portal</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/admin/css/style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b7102a' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- App mounts here -->
+  <div id="admin-app">
+    <div class="admin-initial-loader">
+      <div class="spinner"></div>
+      <p>Loading RoktoDanBD Administration System...</p>
+    </div>
+  </div>
+
+  <!-- Global Modal overlays -->
+  <div id="admin-modal-overlay" class="modal-overlay hidden"></div>
+  <div id="admin-modal-container" class="modal-container hidden"></div>
+
+  <!-- Toast system -->
+  <div id="admin-toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/admin/js/api.js"></script>
+  <script src="/admin/js/pages/login.js"></script>
+  <script src="/admin/js/pages/dashboard.js"></script>
+  <script src="/admin/js/pages/users.js"></script>
+  <script src="/admin/js/pages/requests.js"></script>
+  <script src="/admin/js/pages/donations.js"></script>
+  <script src="/admin/js/pages/thalassemia.js"></script>
+  <script src="/admin/js/pages/settings.js"></script>
+  <!-- Router runs last -->
+  <script src="/admin/js/app.js"></script>
+</body>
+</html>

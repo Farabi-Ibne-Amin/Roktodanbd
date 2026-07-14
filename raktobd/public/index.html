@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoktoDanBD — রক্তদান বাংলাদেশ | Find Blood Donors Across Bangladesh</title>
+  <meta name="description" content="RoktoDanBD connects blood donors with recipients across Bangladesh. Find verified donors by blood group and district, submit blood requests, and help save lives." />
+  <meta name="keywords" content="blood donation, Bangladesh, roktodan, রক্তদান, blood donor, blood request, O negative, thalassemia" />
+  <meta property="og:title" content="RoktoDanBD — Find Blood Donors Across Bangladesh" />
+  <meta property="og:description" content="A community-driven platform connecting blood donors with recipients in Bangladesh." />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Design system -->
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Favicon (inline SVG blood drop) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b7102a' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- App mount point -->
+  <div id="app">
+    <!-- Initial loader shown while JS boots -->
+    <div class="initial-loader">
+      <div class="loader-drop">
+        <svg viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="64">
+          <path d="M24 0C24 0 4 24 4 38C4 49.046 13 58 24 58C35 58 44 49.046 44 38C44 24 24 0 24 0Z" fill="#b7102a"/>
+          <path d="M24 12C24 12 10 28.5 10 38C10 45.732 16.268 52 24 52" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+      </div>
+      <p class="loader-text">RoktoDanBD</p>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Modal container -->
+  <div id="modal-overlay" class="modal-overlay hidden"></div>
+  <div id="modal-container" class="modal-container hidden"></div>
+
+  <!-- JS Components (load order matters) -->
+  <script src="/js/bd_geodata.js"></script>
+  <script src="/js/bd_hospitals.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/components/toast.js"></script>
+  <script src="/js/components/navbar.js"></script>
+  <script src="/js/components/donorCard.js"></script>
+  <script src="/js/components/requestCard.js"></script>
+  <script src="/js/pages/home.js"></script>
+  <script src="/js/pages/donors.js"></script>
+  <script src="/js/pages/requests.js"></script>
+  <script src="/js/pages/register.js"></script>
+  <script src="/js/pages/login.js"></script>
+  <script src="/js/pages/dashboard.js"></script>
+  <script src="/js/pages/thalassemia.js"></script>
+  <script src="/js/pages/donate.js"></script>
+  <!-- Router boots last -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
