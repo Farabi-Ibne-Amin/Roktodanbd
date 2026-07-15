@@ -4,6 +4,17 @@ const { Donation } = require('../models');
 const axios = require('axios');
 const { sendDonationReceiptEmail } = require('../utils/email');
 
+// ── bKash input validation helpers ───────────────────────────────────────────
+
+/** Validates that a paymentID is safe to use in DB queries (alphanumeric + hyphens only) */
+const isValidPaymentID = (id) => typeof id === 'string' && /^[A-Za-z0-9\-_]{5,64}$/.test(id);
+
+/** Validates donation amount is a reasonable positive number */
+const isValidAmount = (amount) => {
+  const num = parseFloat(amount);
+  return !isNaN(num) && num >= 10 && num <= 100000;
+};
+
 // Helper to request bKash grant authorization token
 const getBkashToken = async () => {
   const response = await axios.post(`${process.env.BKASH_BASE_URL}/checkout/token/grant`, {
@@ -28,15 +39,31 @@ router.post('/donate/create', async (req, res) => {
       return res.status(400).json({ error: 'Amount and payerReference are required' });
     }
 
+    // Validate amount is within safe bounds
+    if (!isValidAmount(amount)) {
+      return res.status(400).json({ error: 'Amount must be between 10 and 100,000 BDT.' });
+    }
+
+    // Sanitize payer reference
+    const safePayerRef = typeof payerReference === 'string'
+      ? payerReference.trim().slice(0, 15)
+      : '';
+    if (!safePayerRef) {
+      return res.status(400).json({ error: 'Invalid payerReference.' });
+    }
+
+    // Validate email if provided
+    const safeEmail = typeof donorEmail === 'string' ? donorEmail.trim().slice(0, 200) : '';
+
     // 1. Get authorization token
     const idToken = await getBkashToken();
 
     // 2. Initialize bKash Checkout Payment Request
     const response = await axios.post(`${process.env.BKASH_BASE_URL}/checkout/payment/create`, {
       mode: '0011',
-      payerReference: payerReference.substring(0, 15), // bKash reference max limit is 15
+      payerReference: safePayerRef,
       callbackURL: process.env.BKASH_CALLBACK_URL,
-      amount: amount.toString(),
+      amount: parseFloat(amount).toFixed(2),
       currency: 'BDT',
       intent: 'sale'
     }, {
@@ -48,7 +75,7 @@ router.post('/donate/create', async (req, res) => {
     });
 
     const paymentData = response.data;
-    
+
     // Validate response code
     if (paymentData.statusCode && paymentData.statusCode !== '0000') {
       return res.status(400).json({ error: paymentData.statusMessage || 'bKash PGW initialization failed' });
@@ -60,8 +87,8 @@ router.post('/donate/create', async (req, res) => {
       amount: parseFloat(amount),
       status: 'initiated',
       purpose: 'Donation to RoktoDanBD',
-      donorName: payerReference,
-      donorEmail: donorEmail || ''
+      donorName: safePayerRef,
+      donorEmail: safeEmail
     });
 
     await donation.save();
@@ -83,25 +110,32 @@ router.post('/donate/create', async (req, res) => {
 router.get('/donate/callback', async (req, res) => {
   const { paymentID, status } = req.query;
 
-  if (!paymentID) {
-    return res.status(400).json({ error: 'Payment ID is required' });
+  if (!paymentID || !isValidPaymentID(paymentID)) {
+    return res.status(400).json({ error: 'Invalid or missing Payment ID.' });
   }
 
   try {
     // Handle cancellation
     if (status === 'cancel') {
       await Donation.findOneAndUpdate({ paymentID }, { status: 'cancelled' });
-      return res.redirect(`/donation-cancel?paymentID=${paymentID}`);
+      return res.redirect(`/donation-cancel?paymentID=${encodeURIComponent(paymentID)}`);
     }
 
     // Handle failure
     if (status === 'failure') {
       await Donation.findOneAndUpdate({ paymentID }, { status: 'failed' });
-      return res.redirect(`/donation-failure?paymentID=${paymentID}`);
+      return res.redirect(`/donation-failure?paymentID=${encodeURIComponent(paymentID)}`);
     }
 
     // Handle payment completion verification
     if (status === 'success') {
+      // ── Idempotency guard: prevent re-execution of already-completed payments ──
+      const existingDonation = await Donation.findOne({ paymentID });
+      if (existingDonation && existingDonation.status === 'completed') {
+        console.log(`⚠️ Duplicate callback for already-completed payment: ${paymentID}`);
+        return res.redirect(`/donation-success?paymentID=${encodeURIComponent(paymentID)}`);
+      }
+
       // 1. Get authentication token
       const idToken = await getBkashToken();
 
@@ -141,16 +175,16 @@ router.get('/donate/callback', async (req, res) => {
           }).catch(err => console.error('❌ Donation receipt email error:', err));
         }
 
-        return res.redirect(`/donation-success?paymentID=${paymentID}`);
+        return res.redirect(`/donation-success?paymentID=${encodeURIComponent(paymentID)}`);
       } else {
         // Verification / execute failed
         await Donation.findOneAndUpdate({ paymentID }, { status: 'failed' });
-        return res.redirect(`/donation-failure?paymentID=${paymentID}`);
+        return res.redirect(`/donation-failure?paymentID=${encodeURIComponent(paymentID)}`);
       }
     }
 
     // Fallback failure redirect
-    res.redirect(`/donation-failure?paymentID=${paymentID}`);
+    res.redirect(`/donation-failure?paymentID=${encodeURIComponent(paymentID)}`);
 
   } catch (err) {
     console.error('bKash execute callback error:', err.response ? err.response.data : err.message);
@@ -159,17 +193,23 @@ router.get('/donate/callback', async (req, res) => {
 });
 
 // GET /api/donations/donate/cancel — Fallback endpoint redirect
-router.get('/api/donations/donate/cancel', async (req, res) => {
+router.get('/donate/cancel', async (req, res) => {
   const { paymentID } = req.query;
+  if (!paymentID || !isValidPaymentID(paymentID)) {
+    return res.redirect('/donation-cancel');
+  }
   await Donation.findOneAndUpdate({ paymentID }, { status: 'cancelled' });
-  res.redirect(`/donation-cancel?paymentID=${paymentID}`);
+  res.redirect(`/donation-cancel?paymentID=${encodeURIComponent(paymentID)}`);
 });
 
 // GET /api/donations/donate/failure — Fallback endpoint redirect
-router.get('/api/donations/donate/failure', async (req, res) => {
+router.get('/donate/failure', async (req, res) => {
   const { paymentID } = req.query;
+  if (!paymentID || !isValidPaymentID(paymentID)) {
+    return res.redirect('/donation-failure');
+  }
   await Donation.findOneAndUpdate({ paymentID }, { status: 'failed' });
-  res.redirect(`/donation-failure?paymentID=${paymentID}`);
+  res.redirect(`/donation-failure?paymentID=${encodeURIComponent(paymentID)}`);
 });
 
 module.exports = router;

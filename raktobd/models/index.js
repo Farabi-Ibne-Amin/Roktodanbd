@@ -44,9 +44,13 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate auth token
+// Generate auth token — type:'user' prevents this token from being used on admin routes
 userSchema.methods.generateAuthToken = function() {
-  const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(
+    { _id: this._id, type: 'user' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
   return token;
 };
 
@@ -98,9 +102,13 @@ adminSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate auth token for admin
+// Generate auth token for admin — type:'admin' prevents this token from being used on user routes
 adminSchema.methods.generateAuthToken = function() {
-  const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(
+    { _id: this._id, type: 'admin' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
   return token;
 };
 

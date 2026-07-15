@@ -3,21 +3,31 @@ const { Admin } = require('../models');
 
 module.exports = async (req, res, next) => {
   try {
-    const token = req.header('Authorization').replace('Bearer ', '');
+    const authHeader = req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Please authenticate as admin.' });
+    }
+
+    const token = authHeader.replace('Bearer ', '').trim();
     if (!token) {
-      throw new Error();
+      return res.status(401).json({ error: 'Please authenticate as admin.' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const admin = await Admin.findById(decoded._id);
 
+    // Ensure this is an admin token, not a user token (prevents privilege cross-use)
+    if (decoded.type !== 'admin') {
+      return res.status(401).json({ error: 'Please authenticate as admin.' });
+    }
+
+    const admin = await Admin.findById(decoded._id);
     if (!admin) {
-      throw new Error();
+      return res.status(401).json({ error: 'Please authenticate as admin.' });
     }
 
     req.admin = admin;
     next();
   } catch (e) {
-    res.status(401).send({ error: 'Please authenticate as admin.' });
+    res.status(401).json({ error: 'Please authenticate as admin.' });
   }
 };
