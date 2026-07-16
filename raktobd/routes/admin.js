@@ -244,9 +244,9 @@ router.get('/settings', adminAuth, async (req, res) => {
     // We don't have a settings model, so we'll return default values.
     // In a real app, we would have a Settings model or use environment variables.
     res.json({
-      emergencyBannerText: '🚨 জরুরি রক্তের প্রয়োজন? এখনি ফোন করুন: 01700-000000',
+      emergencyBannerText: '🚨 জরুরি রক্তের প্রয়োজন? এখনি ফোন করুন: 01537103242',
       siteAnnouncementEnabled: false,
-      contactPhone: '01700-000000'
+      contactPhone: '01537103242'
     });
   } catch (err) {
     console.error(err);
