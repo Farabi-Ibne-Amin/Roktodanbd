@@ -1,4 +1,4 @@
-# Raktobd 2.0
+# RaktoDanBD
 
 This repository contains the Raktobd blood donation application. It includes the main `raktobd` application and a `2.0` folder with additional middleware, models, routes, and utilities.
 
