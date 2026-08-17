@@ -47,3 +47,4 @@ This repository contains the Raktobd blood donation application. It includes the
 - The `raktobd/package.json` file defines the main backend dependencies for the project.
 - Use `nodemon` for local development.
 - Frontend files are served from `raktobd/public/`.
+- Credit:Farabi
